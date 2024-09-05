@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.snapcompose.ui.MainScreen
+import com.example.snapcompose.ui.MainViewModel
 import com.example.snapcompose.ui.theme.SnapComposeTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,28 +22,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             SnapComposeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
+                    val viewModel = MainViewModel(applicationContext = this@MainActivity.applicationContext)
+
+                    MainScreen(
+                        modifier = Modifier.padding(innerPadding),
+                        viewModel = viewModel
                     )
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    SnapComposeTheme {
-        Greeting("Android")
     }
 }
