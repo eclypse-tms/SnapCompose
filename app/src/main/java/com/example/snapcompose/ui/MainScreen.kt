@@ -38,9 +38,11 @@ import kotlinx.coroutines.Dispatchers
 fun MainScreen(modifier: Modifier = Modifier,
                viewModel: MainViewModel) {
 
+    val viewState: MainScreenViewState by viewModel.viewStateFlow.collectAsState()
+
     val currentContext = LocalContext.current
 
-    val viewState: MainScreenViewState by viewModel.viewStateFlow.collectAsState()
+
 
     val pickImageFromAlbumLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { urls ->
         viewModel.onEvent(Event.OnFinishPickingImagesWith(currentContext, urls))
@@ -100,24 +102,22 @@ fun MainScreen(modifier: Modifier = Modifier,
             }
         }
 
-        if (viewState.selectedPictures.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Pictures")
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(150.dp),
-                userScrollEnabled = false,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(0.dp, 1200.dp)
-            ) {
-                itemsIndexed(viewState.selectedPictures) { index, picture ->
-                    Image(
-                        modifier = Modifier.padding(8.dp),
-                        bitmap = picture,
-                        contentDescription = null,
-                        contentScale = ContentScale.FillWidth
-                    )
-                }
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(text = "Selected Pictures")
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(150.dp),
+            userScrollEnabled = false,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(0.dp, 1200.dp)
+        ) {
+            itemsIndexed(viewState.selectedPictures) { index, picture ->
+                Image(
+                    modifier = Modifier.padding(8.dp),
+                    bitmap = picture,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth
+                )
             }
         }
     }
