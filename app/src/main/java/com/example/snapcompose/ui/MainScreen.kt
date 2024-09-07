@@ -6,12 +6,14 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
@@ -83,17 +85,21 @@ fun MainScreen(modifier: Modifier = Modifier,
         .verticalScroll(rememberScrollState())
         .then(modifier),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Button(onClick = {
-            permissionLauncher.launch(Manifest.permission.CAMERA)
-        }) {
-            Text(text = "Take a photo")
+
+        Row {
+            Button(onClick = {
+                permissionLauncher.launch(Manifest.permission.CAMERA)
+            }) {
+                Text(text = "Take a photo")
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Button(onClick = {
+                pickImageFromAlbumLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }) {
+                Text(text = "Pick a picture")
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            pickImageFromAlbumLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-        }) {
-            Text(text = "Pick a picture")
-        }
+
         if (viewState.selectedPictures.isNotEmpty()) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = "Pictures")
