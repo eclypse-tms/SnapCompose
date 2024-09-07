@@ -1,12 +1,13 @@
 package com.example.snapcompose.ui
 
+import android.app.Application
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.content.FileProvider
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.snapcompose.BuildConfig
 import com.example.snapcompose.ui.theme.MainScreenViewState
@@ -16,9 +17,12 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-class MainViewModel(private val coroutineContext: CoroutineContext
-): ViewModel() {
-
+/**
+ * This variant inherits from [AndroidViewModel] and has access to the application context
+ */
+class MainAndroidViewModel(private val appContext: Application,
+                           private val coroutineContext: CoroutineContext
+): AndroidViewModel(appContext) {
     //region View State
     private val _mainScreenViewState: MutableStateFlow<MainScreenViewState> = MutableStateFlow(
         MainScreenViewState()
@@ -29,16 +33,16 @@ class MainViewModel(private val coroutineContext: CoroutineContext
 
     fun onEvent(event: Event) = viewModelScope.launch(coroutineContext) {
         when(event) {
-            is Event.OnPermissionGrantedWith -> {
+            is Event.OnPermissionGranted -> {
                 // Create an empty image file in the app's cache directory
                 val file = File.createTempFile(
                     "temp_image_file_", /* prefix */
                     ".jpg", /* suffix */
-                    event.compositionContext.cacheDir  /* cache directory */
+                    appContext.cacheDir  /* cache directory */
                 )
 
                 // Create sandboxed url for this temp file - needed for the camera API
-                val uri = FileProvider.getUriForFile(event.compositionContext,
+                val uri = FileProvider.getUriForFile(appContext,
                     "${BuildConfig.APPLICATION_ID}.provider",
                     file
                 )
@@ -50,12 +54,12 @@ class MainViewModel(private val coroutineContext: CoroutineContext
                 println("User did not grant permission to use the camera")
             }
 
-            is Event.OnFinishPickingImagesWith -> {
+            is Event.OnFinishPickingImages -> {
                 if (event.imageUrls.isNotEmpty()) {
                     // Handle picked images
                     val newImages = mutableListOf<ImageBitmap>()
                     for (eachImageUrl in event.imageUrls) {
-                        val inputStream = event.compositionContext.contentResolver.openInputStream(eachImageUrl)
+                        val inputStream = appContext.contentResolver.openInputStream(eachImageUrl)
                         val bytes = inputStream?.readBytes()
                         inputStream?.close()
 
@@ -82,10 +86,10 @@ class MainViewModel(private val coroutineContext: CoroutineContext
                 }
             }
 
-            is Event.OnImageSavedWith -> {
+            is Event.OnImageSaved -> {
                 val tempImageUrl = _mainScreenViewState.value.tempFileUrl
                 if (tempImageUrl != null) {
-                    val source = ImageDecoder.createSource(event.compositionContext.contentResolver, tempImageUrl)
+                    val source: ImageDecoder.Source = ImageDecoder.createSource(appContext.contentResolver, tempImageUrl)
 
                     val currentPictures = _mainScreenViewState.value.selectedPictures.toMutableList()
                     currentPictures.add(ImageDecoder.decodeBitmap(source).asImageBitmap())
@@ -99,15 +103,15 @@ class MainViewModel(private val coroutineContext: CoroutineContext
                 _mainScreenViewState.value = _mainScreenViewState.value.copy(tempFileUrl = null)
             }
 
-            is Event.OnPermissionGranted -> {
+            is Event.OnFinishPickingImagesWith -> {
                 // unnecessary in this viewmodel variant
             }
 
-            is Event.OnFinishPickingImages -> {
+            is Event.OnPermissionGrantedWith -> {
                 // unnecessary in this viewmodel variant
             }
 
-            is Event.OnImageSaved -> {
+            is Event.OnImageSavedWith -> {
                 // unnecessary in this viewmodel variant
             }
         }
