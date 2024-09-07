@@ -29,7 +29,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.snapcompose.ui.theme.MainScreenViewState
 import com.example.snapcompose.ui.theme.SnapComposeTheme
 import kotlinx.coroutines.Dispatchers
 
@@ -122,7 +121,5 @@ fun MainScreen(modifier: Modifier = Modifier,
 @Composable
 fun MainScreenPreview() {
     val viewModel = MainViewModel(Dispatchers.Default)
-    SnapComposeTheme {
-        MainScreen(viewModel = viewModel)
-    }
+    MainScreen(viewModel = viewModel)
 }

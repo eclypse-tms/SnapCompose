@@ -1,4 +1,4 @@
-package com.example.snapcompose.ui.theme
+package com.example.snapcompose.ui
 
 import android.net.Uri
 import androidx.compose.ui.graphics.ImageBitmap
