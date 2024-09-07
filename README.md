@@ -12,4 +12,6 @@
 SnapCompose demonstrates how to take pictures with the Camera or pick photos from the Gallery using Jetpack Compose.
 
 
+<p align="center">
 ![Screenshots](./assets/app_preview.jpg)
+</p>
