@@ -1,4 +1,4 @@
-package com.example.snapcompose.ui
+package com.example.snapcompose.ui.album
 
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -31,44 +31,43 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.snapcompose.ui.theme.SnapComposeTheme
 import kotlinx.coroutines.Dispatchers
 
 @Composable
-fun MainScreen(modifier: Modifier = Modifier,
-               viewModel: MainViewModel) {
+fun AlbumScreen(modifier: Modifier = Modifier,
+                viewModel: AlbumViewModel) {
 
-    val viewState: MainScreenViewState by viewModel.viewStateFlow.collectAsState()
+    // collecting the flow from the view model as a state allows our ViewModel and View
+    // to be in sync with each other.
+    val viewState: AlbumViewState by viewModel.viewStateFlow.collectAsState()
 
     val currentContext = LocalContext.current
 
-
-
-    val pickImageFromAlbumLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia()) { urls ->
-        viewModel.onEvent(Event.OnFinishPickingImagesWith(currentContext, urls))
+    val pickImageFromAlbumLauncher = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(20)) { urls ->
+        viewModel.onReceive(Intent.OnFinishPickingImagesWith(currentContext, urls))
         // or if you are using AndroidViewModel use this event instead
         // viewModel.onEvent(Event.OnFinishPickingImages(urls))
     }
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { isImageSaved ->
         if (isImageSaved) {
-            viewModel.onEvent(Event.OnImageSavedWith(currentContext))
+            viewModel.onReceive(Intent.OnImageSavedWith(currentContext))
             // or if you are using AndroidViewModel use this event instead
             // viewModel.onEvent(Event.OnImageSaved)
         } else {
             // handle image saving error or cancellation
-            viewModel.onEvent(Event.OnImageSavingCanceled)
+            viewModel.onReceive(Intent.OnImageSavingCanceled)
         }
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { permissionGranted ->
         if (permissionGranted) {
-            viewModel.onEvent(Event.OnPermissionGrantedWith(currentContext))
+            viewModel.onReceive(Intent.OnPermissionGrantedWith(currentContext))
             // or if you are using AndroidViewModel use this event instead
             // viewModel.onEvent(Event.OnPermissionGranted)
         } else {
             // handle permission denied such as:
-            viewModel.onEvent(Event.OnPermissionDenied)
+            viewModel.onReceive(Intent.OnPermissionDenied)
             // or perhaps show a toast
             // Toast.makeText(context, "In order to take pictures, you have to allow this app to use your camera", Toast.LENGTH_SHORT).show()
         }
@@ -81,6 +80,7 @@ fun MainScreen(modifier: Modifier = Modifier,
         }
     }
 
+    // basic view that has 2 buttons and a grid for selected pictures
     Column(modifier = Modifier
         .fillMaxSize()
         .padding(20.dp)
@@ -126,6 +126,6 @@ fun MainScreen(modifier: Modifier = Modifier,
 @Preview(widthDp = 360, heightDp = 640)
 @Composable
 fun MainScreenPreview() {
-    val viewModel = MainViewModel(Dispatchers.Default)
-    MainScreen(viewModel = viewModel)
+    val viewModel = AlbumViewModel(Dispatchers.Default)
+    AlbumScreen(viewModel = viewModel)
 }

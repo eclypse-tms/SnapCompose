@@ -8,24 +8,23 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.example.snapcompose.ui.MainScreen
-import com.example.snapcompose.ui.MainViewModel
-import com.example.snapcompose.ui.theme.SnapComposeTheme
+import com.example.snapcompose.ui.album.AlbumScreen
+import com.example.snapcompose.ui.album.AlbumViewModel
 import kotlinx.coroutines.Dispatchers
 
 class MainActivity : ComponentActivity() {
-    private lateinit var viewModel: MainViewModel
+    private lateinit var viewModel: AlbumViewModel
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        viewModel = MainViewModel(coroutineContext = Dispatchers.Default)
+        viewModel = AlbumViewModel(coroutineContext = Dispatchers.Default)
 
         enableEdgeToEdge()
         setContent {
             Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                MainScreen(
+                AlbumScreen(
                     modifier = Modifier.padding(innerPadding),
                     viewModel = viewModel
                 )

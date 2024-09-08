@@ -1,4 +1,4 @@
-package com.example.snapcompose.ui
+package com.example.snapcompose.ui.album
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,46 +15,47 @@ import kotlinx.coroutines.launch
 import java.io.File
 import kotlin.coroutines.CoroutineContext
 
-class MainViewModel(private val coroutineContext: CoroutineContext
+class AlbumViewModel(private val coroutineContext: CoroutineContext
 ): ViewModel() {
 
     //region View State
-    private val _mainScreenViewState: MutableStateFlow<MainScreenViewState> = MutableStateFlow(
-        MainScreenViewState()
+    private val _albumViewState: MutableStateFlow<AlbumViewState> = MutableStateFlow(
+        AlbumViewState()
     )
-    val viewStateFlow: StateFlow<MainScreenViewState>
-        get() = _mainScreenViewState
+    val viewStateFlow: StateFlow<AlbumViewState>
+        get() = _albumViewState
     //endregion
 
-    fun onEvent(event: Event) = viewModelScope.launch(coroutineContext) {
-        when(event) {
-            is Event.OnPermissionGrantedWith -> {
+    // region Intents
+    fun onReceive(intent: Intent) = viewModelScope.launch(coroutineContext) {
+        when(intent) {
+            is Intent.OnPermissionGrantedWith -> {
                 // Create an empty image file in the app's cache directory
-                val file = File.createTempFile(
+                val tempFile = File.createTempFile(
                     "temp_image_file_", /* prefix */
                     ".jpg", /* suffix */
-                    event.compositionContext.cacheDir  /* cache directory */
+                    intent.compositionContext.cacheDir  /* cache directory */
                 )
 
                 // Create sandboxed url for this temp file - needed for the camera API
-                val uri = FileProvider.getUriForFile(event.compositionContext,
-                    "${BuildConfig.APPLICATION_ID}.provider",
-                    file
+                val uri = FileProvider.getUriForFile(intent.compositionContext,
+                    "${BuildConfig.APPLICATION_ID}.provider", /* needs to match the provider information in the manifest */
+                    tempFile
                 )
-                _mainScreenViewState.value = _mainScreenViewState.value.copy(tempFileUrl = uri)
+                _albumViewState.value = _albumViewState.value.copy(tempFileUrl = uri)
             }
 
-            is Event.OnPermissionDenied -> {
+            is Intent.OnPermissionDenied -> {
                 // maybe log the permission denial event
                 println("User did not grant permission to use the camera")
             }
 
-            is Event.OnFinishPickingImagesWith -> {
-                if (event.imageUrls.isNotEmpty()) {
+            is Intent.OnFinishPickingImagesWith -> {
+                if (intent.imageUrls.isNotEmpty()) {
                     // Handle picked images
                     val newImages = mutableListOf<ImageBitmap>()
-                    for (eachImageUrl in event.imageUrls) {
-                        val inputStream = event.compositionContext.contentResolver.openInputStream(eachImageUrl)
+                    for (eachImageUrl in intent.imageUrls) {
+                        val inputStream = intent.compositionContext.contentResolver.openInputStream(eachImageUrl)
                         val bytes = inputStream?.readBytes()
                         inputStream?.close()
 
@@ -62,53 +63,53 @@ class MainViewModel(private val coroutineContext: CoroutineContext
                             val bitmapOptions = BitmapFactory.Options()
                             bitmapOptions.inMutable = true
                             val bitmap: Bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bitmapOptions)
-                            val imageBitmap = bitmap.asImageBitmap()
-                            newImages.add(imageBitmap)
+                            newImages.add(bitmap.asImageBitmap())
                         } else {
                             // error reading the bytes from the image url
                             println("The image that was picked could not be read from the device at this url: $eachImageUrl")
                         }
                     }
 
-                    val currentViewState = _mainScreenViewState.value
+                    val currentViewState = _albumViewState.value
                     val newCopy = currentViewState.copy(
                         selectedPictures = (currentViewState.selectedPictures + newImages),
                         tempFileUrl = null
                     )
-                    _mainScreenViewState.value = newCopy
+                    _albumViewState.value = newCopy
                 } else {
                     // user did not pick anything
                 }
             }
 
-            is Event.OnImageSavedWith -> {
-                val tempImageUrl = _mainScreenViewState.value.tempFileUrl
+            is Intent.OnImageSavedWith -> {
+                val tempImageUrl = _albumViewState.value.tempFileUrl
                 if (tempImageUrl != null) {
-                    val source = ImageDecoder.createSource(event.compositionContext.contentResolver, tempImageUrl)
+                    val source = ImageDecoder.createSource(intent.compositionContext.contentResolver, tempImageUrl)
 
-                    val currentPictures = _mainScreenViewState.value.selectedPictures.toMutableList()
+                    val currentPictures = _albumViewState.value.selectedPictures.toMutableList()
                     currentPictures.add(ImageDecoder.decodeBitmap(source).asImageBitmap())
 
-                    _mainScreenViewState.value = _mainScreenViewState.value.copy(tempFileUrl = null,
+                    _albumViewState.value = _albumViewState.value.copy(tempFileUrl = null,
                         selectedPictures = currentPictures)
                 }
             }
 
-            is Event.OnImageSavingCanceled -> {
-                _mainScreenViewState.value = _mainScreenViewState.value.copy(tempFileUrl = null)
+            is Intent.OnImageSavingCanceled -> {
+                _albumViewState.value = _albumViewState.value.copy(tempFileUrl = null)
             }
 
-            is Event.OnPermissionGranted -> {
+            is Intent.OnPermissionGranted -> {
                 // unnecessary in this viewmodel variant
             }
 
-            is Event.OnFinishPickingImages -> {
+            is Intent.OnFinishPickingImages -> {
                 // unnecessary in this viewmodel variant
             }
 
-            is Event.OnImageSaved -> {
+            is Intent.OnImageSaved -> {
                 // unnecessary in this viewmodel variant
             }
         }
     }
+    // endregion
 }
